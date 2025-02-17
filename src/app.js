@@ -1,37 +1,28 @@
 const express = require('express');
+const { adminAuth, userAuth } = require('./middlewares/auth');
 
 const app = express();
 const port = 7777;
 
-app.get('/user', (req, res) =>
-  res.send({
-    firstName: 'Ashish',
-    lastName: 'Vason',
-  })
-);
+// using Middleware.
 
-app.use(
-  '/test',
-  (req, res, next) => {
-    // res.send('Response!!');
-    next();
-  },
-  (req, res, next) => {
-    console.log('route handler 2');
-    // res.send('Response 2nd');
-    next();
-  },
-  (req, res, next) => {
-    console.log('route handler 3');
-    // res.send('Response 3rd');
-    next();
-  },
-  (req, res, next) => {
-    console.log('route handler 4');
-    res.send('Response 4th');
-    // next();
-  }
-);
-// app.use('/', (req, res) => res.send('Hello from the Home Page'));
+// Middleware works for all admin routes.
+app.use('/admin', adminAuth);
+
+app.get('/user/getData', userAuth, (req, res) => {
+  res.send('User data viewed.');
+});
+
+app.post('/user/login', userAuth, (req, res) => {
+  res.send('User logged in');
+});
+
+app.get('/admin/getData', (req, res) => {
+  res.send('Admin data viewed!');
+});
+
+app.post('/admin/sendData', (req, res) => {
+  res.send('Admin data sent!');
+});
 
 app.listen(port, () => console.log('Server is listening at port', port));
