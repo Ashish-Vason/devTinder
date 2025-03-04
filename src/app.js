@@ -1,28 +1,36 @@
 const express = require('express');
 const { adminAuth, userAuth } = require('./middlewares/auth');
+const connectDB = require('./config/database');
+const User = require('./models/User');
 
 const app = express();
 const port = 7777;
 
-// using Middleware.
-
-// Middleware works for all admin routes.
-app.use('/admin', adminAuth);
-
-app.get('/user/getData', userAuth, (req, res) => {
-  res.send('User data viewed.');
+app.post('/signup', async (req, res) => {
+  const userData = {
+    firstName: 'Ashish',
+    lastName: 'Vason',
+    email: 'ashish@gmail.com',
+    password: 'abc123',
+  };
+  // creating new instance of userModal.
+  const user = new User(userData);
+  try {
+    await user.save();
+    // to save in the database
+    res.send('User Added Successfully!!');
+  } catch (err) {
+    res.status(400).send('Error in saving user!:', err.message);
+  }
 });
 
-app.post('/user/login', userAuth, (req, res) => {
-  res.send('User logged in');
-});
+connectDB()
+  .then(() => {
+    console.log('Database connected succesfully.');
+    app.listen(port, () => console.log('Server is listening at port', port));
+  })
+  .catch((err) => {
+    console.error('Error while connecting to Database.', err);
+  });
 
-app.get('/admin/getData', (req, res) => {
-  res.send('Admin data viewed!');
-});
-
-app.post('/admin/sendData', (req, res) => {
-  res.send('Admin data sent!');
-});
-
-app.listen(port, () => console.log('Server is listening at port', port));
+// Always connects to DB before listening an request on server. It's right way to do that.
