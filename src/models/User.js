@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 
 const userSchema = new mongoose.Schema(
   {
@@ -36,7 +38,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       minLength: 4,
-      maxLength: 20,
+      maxLength: 200,
       validate(value) {
         if (!validator.isStrongPassword(value)) {
           throw new Error('Please enter a strong password', value);
@@ -86,6 +88,24 @@ const userSchema = new mongoose.Schema(
 );
 
 // Modal is like a class where we can structure the userSchema.
+
+userSchema.methods.getJWT = async function () {
+  const user = this;
+  const token = await jwt.sign({ _id: user._id }, 'Dev@Tinder$271', {
+    expiresIn: '1d',
+  });
+  return token;
+};
+
+userSchema.methods.verifyPassword = async function (passwordInput) {
+  const user = this;
+  const passwordHash = user.password;
+  const validatePasswordHash = await bcrypt.compare(
+    passwordInput,
+    passwordHash
+  );
+  return validatePasswordHash;
+};
 
 const User = mongoose.model('User', userSchema);
 
